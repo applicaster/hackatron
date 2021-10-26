@@ -1,0 +1,59 @@
+name: Build and Deploy to Cloud
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+env:
+  PROJECT_ID: ${{secrets.PROJECT_ID}}
+  REGION: us-central1
+  DEPLOYMENT_NAME: hackatron-logger
+  IMAGE: hackatron-logger
+  TAG: prod
+
+jobs:
+  setup-build-publish-deploy:
+    name: Setup, Build, Publish, and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+
+    # Checking out code from github repo
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    # Setup gcloud CLI
+    - uses: google-github-actions/setup-gcloud@master
+      with:
+        service_account_key: ${{ secrets.CREDENTIALS_GCP }}
+        project_id: ${{ env.PROJECT_ID }}
+
+    # Configure Docker to use the gcloud command-line tool as a helper for authentication
+    - run: |-
+        gcloud --quiet auth configure-docker
+    
+    # Build the Docker image
+    - name: Build
+      run: |-
+        sudo docker build --tag "gcr.io/${{ env.PROJECT_ID }}/${{ env.IMAGE}}:${{ env.TAG}}" .
+
+    # Push the updated build into the GCR registry
+    - uses: mattes/gce-docker-push-action@v1
+      with:
+        creds: ${{ secrets.CREDENTIALS_GCP }}
+        src: gcr.io/${{ env.PROJECT_ID }}/${{ env.IMAGE}}:${{ env.TAG}}
+        dst: gcr.io/${{ env.PROJECT_ID }}/${{ env.IMAGE}}:${{ env.TAG}}
+        
+      
+    - name: Deploy to Cloud Run
+      id: deploy
+      uses: google-github-actions/deploy-cloudrun@main
+      with:
+        service: ${{env.DEPLOYMENT_NAME}}
+        image: gcr.io/${{ env.PROJECT_ID }}/${{ env.IMAGE}}:${{ env.TAG}}
+        project_id: ${{ env.PROJECT_ID }}
+        region: ${{env.REGION}}
+        credentials: ${{ secrets.CREDENTIALS_GCP }}
+        flags: --memory 2Gi
