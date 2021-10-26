@@ -18,9 +18,9 @@ export class LoggerService {
     return await this.model.findById(id).exec();
   }
 
-  async create(BaseLoggerDto: BaseLoggerDto): Promise<Loggs> {
+  async create(BaseLoggerDto: BaseLoggerDto,pin: string): Promise<Loggs> {
     return await new this.model({
-      ...BaseLoggerDto,
+      ...BaseLoggerDto,pin
     }).save();
   }
 

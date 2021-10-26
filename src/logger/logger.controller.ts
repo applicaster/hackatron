@@ -25,10 +25,12 @@ export class LoggerController {
     return await this.service.findOne(id);
   }
 
-  @Post()
+  @Post("/getpin")
   async create(@Body() body: any) {
+    var randomstring = require("randomstring");
+    const pin = randomstring.generate(7);
     // return body
-    return await this.service.create(body);
+    return await this.service.create(body,pin);
   }
 
   @Put(':id')
