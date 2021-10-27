@@ -1,9 +1,7 @@
 import * as mongoose from 'mongoose';
 
 export const LoggsSchema = new mongoose.Schema({
-
-  app_name: String,
-  app_uuid: String,
-  pincode: String,
-
+  ip_endpoint: String,
+  token: String,
+  expire: Date
 });

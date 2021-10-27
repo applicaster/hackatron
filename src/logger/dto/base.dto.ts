@@ -1,5 +1,5 @@
 export class BaseLoggerDto {
-    pincode: string
-    app_uuid: string
-    app_name: string
+    ip_endpoint: string
+    token: string
+    expire: Date
 }

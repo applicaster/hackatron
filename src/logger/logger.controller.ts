@@ -29,14 +29,26 @@ export class LoggerController {
 // This api will return user_code device_code and verification_url in response to initial request
   @Post("/getcode")
   async create(@Req() req: any, @Body() body: any) {
-    var randomstring = require("randomstring");
-    const pincode = randomstring.generate(7);
-
-    const verification_url = req.get('host')+"/verify"; 
-    const data = {
+    // Parse data from the request
+    const user_data = { 
       app_uuid: body.app_uuid,
       app_name: body.app_name,
-      pincode: pincode
+      pin: body.pin,
+    }
+    // Validate pin here :
+    // Make a call to the DB with app_name , pin and app_uuid 
+    // If pin valid create a new token and assign this token to pin and app_name: 
+    var randomstring = require("randomstring");
+    const token = randomstring.generate(7);
+
+    let expiration = new Date(); 
+    expiration.setTime(expiration.getTime() + (8 * 60 * 60 * 1000));
+    const verification_url = req.get('host')+"/verify"; 
+    // send data back to user
+    const data = {
+      token: token,
+      expire: expiration,
+      ip_endpoint: verification_url
     };
     // return body
     return await this.service.create(data);
