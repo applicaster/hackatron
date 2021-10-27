@@ -8,8 +8,7 @@
 
 
 # PRODUCTION
-FROM node:12-alpine
-
+FROM ubuntu:latest
 
 # # Installing dependencies.
 # RUN apt-get update -y
@@ -21,13 +20,9 @@ FROM node:12-alpine
 
 WORKDIR /app
 
-# Copy application dependency manifests to the container image.
-# A wildcard is used to ensure both package.json AND package-lock.json are copied.
-# Copying this separately prevents re-running npm install on every code change.
-COPY package*.json ./
-
+ENV PORT=8000
 # Install dependencies
-RUN npm install
+RUN pip install -r requirements.txt
 
 # Copy local code to the container image.
 COPY . ./
@@ -36,8 +31,8 @@ COPY . ./
 RUN npm run build
 
 RUN npm install --only=production
-EXPOSE 8080
-CMD ["npm", "run", "start:prod"]
+EXPOSE 8000
+CMD ["uvicorn", "main:app", "--reload"]
  
 
  
