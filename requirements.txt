@@ -9,3 +9,5 @@ dnspython
 argon2-cffi
 python-jose[cryptography]
 starlette~=0.13.6
+jinja2>=2.11.2
+jwt
