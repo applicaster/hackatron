@@ -6,6 +6,8 @@ import {
   Param,
   Post,
   Put,
+  Req,
+  Res
 } from '@nestjs/common';
 import { BaseLoggerDto } from './dto/base.dto';
 import {  } from './dto/base.dto';
@@ -24,13 +26,31 @@ export class LoggerController {
   async find(@Param('id') id: string) {
     return await this.service.findOne(id);
   }
-
-  @Post("/getpin")
-  async create(@Body() body: any) {
+// This api will return user_code device_code and verification_url in response to initial request
+  @Post("/getcode")
+  async create(@Req() req: any, @Body() body: any) {
     var randomstring = require("randomstring");
-    const pin = randomstring.generate(7);
+    const device_code = randomstring.generate(7);
+    const user_code = randomstring.generate(12); 
+    const verification_url = req.get('host')+"/verify"; 
+    const expires_in = 600
+    const interval = 60
+    const data = {
+      app_guid: body.app_guid,
+      app_name: body.app_name,
+      device_code,
+      user_code,
+      verification_url ,
+      expires_in,
+      interval
+    };
     // return body
-    return await this.service.create(body,pin);
+    return await this.service.create(data);
+  }
+
+
+  @Post("/verify")
+    return await this.service.verify(data);
   }
 
   @Put(':id')

@@ -18,14 +18,14 @@ export class LoggerService {
     return await this.model.findById(id).exec();
   }
 
-  async create(BaseLoggerDto: BaseLoggerDto,pin: string): Promise<Loggs> {
+  async create(BaseLoggerDto: BaseLoggerDto): Promise<Loggs> {
     return await new this.model({
-      ...BaseLoggerDto,pin
+      ...BaseLoggerDto
     }).save();
   }
 
-  async update(id: string, updateTodoDto: BaseLoggerDto): Promise<Loggs> {
-    return await this.model.findByIdAndUpdate(id, updateTodoDto).exec();
+  async update(id: string, BaseLoggerDto: BaseLoggerDto): Promise<Loggs> {
+    return await this.model.findByIdAndUpdate(id, BaseLoggerDto).exec();
   }
 
   async delete(id: string): Promise<Loggs> {

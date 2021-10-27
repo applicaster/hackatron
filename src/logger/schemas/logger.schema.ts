@@ -6,8 +6,11 @@ export type LoggsDocument = Loggs & Document;
 @Schema()
 export class Loggs {
   @Prop()
-  pin: string;
+  user_code: string;
 
+  @Prop()
+  device_code: string;
+  
   @Prop()
   exp_date: string;
 
@@ -18,7 +21,13 @@ export class Loggs {
   app_guid: string;
 
   @Prop()
-  data: string;
+  verification_url: string;
+  
+  @Prop()   
+  expires_in: number;
+  
+  @Prop()  
+  interval: number;
 }
 
 export const LoggsSchema = SchemaFactory.createForClass(Loggs);
