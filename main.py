@@ -8,7 +8,7 @@ from typing import Optional, List
 import jwt as jwt
 import uvicorn
 from bson import ObjectId
-from fastapi import FastAPI, Depends, Request
+from fastapi import FastAPI, Depends, Request, Form
 from fastapi import Header, HTTPException, status
 from fastapi.responses import HTMLResponse
 from jose import JWTError, jwt
@@ -18,9 +18,13 @@ from starlette.templating import Jinja2Templates
 
 app = FastAPI()
 
-client = MongoClient("mongodb+srv://applicaster:yAZmIDR62adN39Pj@cluster0.xwumj.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-db = client["myFirstDatabase"]
 
+# todo: pull from environment
+remote_logger_url = 'https://hackatron-logger-2rrbvh5fwa-uc.a.run.app/'
+mongodb_url = "mongodb+srv://applicaster:yAZmIDR62adN39Pj@cluster0.xwumj.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+
+client = MongoClient(mongodb_url)
+db = client["myFirstDatabase"]
 
 SECRET_KEY = "6341472a9fbeebb6e469abd1b579445a4959421d48a39215d844053f98207151"
 ALGORITHM = "HS256"
@@ -77,7 +81,7 @@ def activate(data: dict) -> dict:
     if not record:
         raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED, detail=f'PIN is not found')
 
-    # todo: check it its not already activated (does not has appdata)
+    # check it its not already activated (does not has appdata)
     if record.get('appInfo'):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'Already taken')
 
@@ -91,10 +95,13 @@ def activate(data: dict) -> dict:
     return {
         'jwt': jwt_token,
         'expires': record.get('expires'),
-        'configuration': {
-            'local_logger_url': 'http://192.168.15.237:9080/',
-            'remote_logger_url': 'https://hackatron-logger-2rrbvh5fwa-uc.a.run.app/'
-        }
+        'configuration': _default_configuration()
+    }
+
+
+def _default_configuration() -> dict:
+    return {
+        'remote_logger_url': remote_logger_url
     }
 
 
@@ -106,6 +113,15 @@ def post_events(events: List[dict],
     db["loggs"].update_one({'_id': ObjectId(oid)},
                            {'$push': {'events': {"$each": events}}})
     return "OK"
+
+
+@app.get("/get_configuration")
+def get_configuration(oid: str = Depends(get_app_bucket)) -> dict:
+    record = db["loggs"].find_one({'_id': ObjectId(oid)})
+    if not record:
+        raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED, detail=f'PIN is not found')
+    configuration = record.get('configuration', {})
+    return {**configuration, **_default_configuration()}
 
 
 @app.get("/new_bucket", response_class=HTMLResponse)
@@ -135,11 +151,25 @@ def read_root(request: Request):
     return _render_home(request, None)
 
 
+@app.post("/")
+def update_configuration(request: Request,
+                         pin: str = Form(None),
+                         local_url: str = Form(None)):
+    if local_url:
+        record = db["loggs"].find_one({'pin': pin})
+        if not record:
+            raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED, detail=f'PIN is not found')
+        db["loggs"].update_one({'pin': pin}, {'$set': {'configuration.local_logger_url': local_url}})
+    return _render_home(request, None)
+
+
 def _render_home(request, pin: Optional[str]):
     entries = list(db["loggs"].find())
     for entry in entries:
         entry.pop("_id")
         entry['has_events'] = bool(entry.pop("events", None))
+        if not entry.get('configuration'):
+            entry['configuration'] = {'local_logger_url': ''}
     return templates.TemplateResponse(
         "index.tpl", dict(request=request, title="Zapp Logs", entries=entries, pin=pin)
     )

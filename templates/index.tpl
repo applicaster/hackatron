@@ -21,7 +21,7 @@
         <title>{{ title }}</title>
     </head>
     <body>
-        <header id="header">
+        <header id="header" style="margin: 16px">
             <h1>Zapp Logs</h1>
         </header>
         <main id="content">
@@ -30,11 +30,11 @@
             {% endif %}
 
             <a href="/new_bucket" target="_self">
-                <button type="button" class="btn btn-primary">New bucket</button>
+                <button type="button" class="btn btn-primary" style="margin: 16px">New bucket</button>
             </a>
 
             {%  for entry in entries %}
-            <div class="card" style="width: 36rem; margin: 16px">
+            <div class="card" style="max-width: 36rem; margin: 16px">
               <div class="card-header d-flex justify-content-between">
                 <b>{{ entry.pin }}</b>
                 <div><b>Expires:</b> {{ entry.expires.strftime('%Y-%m-%d %H:%m') }}</div>
@@ -50,6 +50,16 @@
                   {% endif %}
                 </div>
               {% endif %}
+
+            <form method="post" style="padding: 8px">
+               <b>Configuration</b>
+               <div class="form-group">
+                  <label for="local_url">Local logger URL</label>
+                  <input type="text" name="local_url" value="{{ entry.configuration.local_logger_url }}"/>
+                  <input type="number" name="pin" value="{{ entry.pin }}" hidden />
+               </div>
+               <input type="submit" class="btn btn-primary">
+            </form>
 
             </div>
             {% endfor %}
