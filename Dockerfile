@@ -8,16 +8,16 @@
 
 
 # PRODUCTION
-FROM ubuntu:latest
+FROM node:12-alpine
 
 
-# Installing dependencies.
-RUN apt-get update -y
-RUN apt install -y nodejs
-RUN apt-get update -y
-RUN apt install -y npm
-RUN apt install -y openjdk-11-jre-headless 
-RUN java -version
+# # Installing dependencies.
+# RUN apt-get update -y
+# RUN apt install -y nodejs
+# RUN apt-get update -y
+# RUN apt install -y npm
+# RUN apt install -y openjdk-11-jre-headless 
+# RUN java -version
 
 WORKDIR /app
 

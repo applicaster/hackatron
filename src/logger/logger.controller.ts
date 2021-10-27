@@ -47,6 +47,7 @@ export class LoggerController {
     // send data back to user
     const data = {
       token: token,
+      local_ip: "127.0.10.10",
       expire: expiration,
       ip_endpoint: verification_url
     };
