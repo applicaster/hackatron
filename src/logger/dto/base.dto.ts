@@ -1,4 +1,5 @@
 export class BaseLoggerDto {
-    app_guid: string
+    pincode: string
+    app_uuid: string
     app_name: string
- }
+}

@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
 import { LoggerService } from './logger.service';
 import { LoggerController } from './logger.controller';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Loggs, LoggsSchema } from './schemas/logger.schema';
+import { loggerProviders } from './logger.providers';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: Loggs.name, schema: LoggsSchema }])],
+  imports: [DatabaseModule],
   controllers: [LoggerController],
-  providers: [LoggerService]
+  providers: [
+    LoggerService,
+    ...loggerProviders,
+  ],
 })
-
 export class LoggerModule {}

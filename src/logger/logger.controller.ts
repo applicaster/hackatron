@@ -30,19 +30,13 @@ export class LoggerController {
   @Post("/getcode")
   async create(@Req() req: any, @Body() body: any) {
     var randomstring = require("randomstring");
-    const device_code = randomstring.generate(7);
-    const user_code = randomstring.generate(12); 
+    const pincode = randomstring.generate(7);
+
     const verification_url = req.get('host')+"/verify"; 
-    const expires_in = 600
-    const interval = 60
     const data = {
-      app_guid: body.app_guid,
+      app_uuid: body.app_uuid,
       app_name: body.app_name,
-      device_code,
-      user_code,
-      verification_url ,
-      expires_in,
-      interval
+      pincode: pincode
     };
     // return body
     return await this.service.create(data);

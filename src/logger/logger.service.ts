@@ -1,13 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { Injectable, Inject } from '@nestjs/common';
+import { Loggs } from './interfaces/loggs.interface';
 import { BaseLoggerDto } from './dto/base.dto';
-import { Loggs, LoggsDocument } from './schemas/logger.schema';
 
 @Injectable()
 export class LoggerService {
   constructor(
-    @InjectModel(Loggs.name) private readonly model: Model<LoggsDocument>,
+    @Inject('LOGGER_MODEL')
+    private model: Model<Loggs>,
   ) {}
 
   async findAll(): Promise<Loggs[]> {
