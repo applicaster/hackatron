@@ -10,10 +10,6 @@ COPY . .
 
 RUN pip install -r requirements.txt
 
-# Build the application
-RUN npm run build
-
-RUN npm install --only=production
 EXPOSE 8000
 CMD ["uvicorn", "main:app", "--reload"]
  
