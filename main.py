@@ -2,7 +2,7 @@ import datetime
 import random
 import string
 from typing import Optional, List, Dict
-
+import os
 import jwt as jwt
 import uvicorn
 from fastapi import FastAPI, Depends, Request
@@ -95,6 +95,9 @@ def read_root(request: Request):
         "index.tpl", dict(request=request, title="Zapp Logs")
     )
 
-uvicorn.run(app,
-            host='0.0.0.0',
-            port=8000)
+# uvicorn.run(app,
+#             host='0.0.0.0',
+#             port=8000)
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
