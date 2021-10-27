@@ -49,9 +49,6 @@ export class LoggerController {
   }
 
 
-  @Post("/verify")
-    return "dummy reply"
-
   @Put(':id')
   async update(@Param('id') id: string, @Body() BaseLoggerDto: BaseLoggerDto) {
     return await this.service.update(id, BaseLoggerDto);
