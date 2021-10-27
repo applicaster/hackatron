@@ -35,11 +35,21 @@ templates = Jinja2Templates('templates')
 def _new_pin() -> str:
     while True:
         pin = ''.join(random.choices(string.digits, k=5))
-        if db["loggs"].find_one({'pin': pin}):
+        if _get_collection().find_one({'pin': pin}):
             continue
         expires = datetime.datetime.utcnow() + datetime.timedelta(days=1)
-        db["loggs"].insert_one({'pin': pin, 'expires': expires})
+        _get_collection().insert_one({'pin': pin, 'expires': expires})
         return pin
+
+
+def _get_collection():
+    return db["loggs"]
+
+
+def _default_configuration() -> dict:
+    return {
+        'remote_logger_url': remote_logger_url
+    }
 
 
 async def get_app_bucket(Authorization: Optional[str] = Header(None)):
@@ -68,16 +78,19 @@ async def get_app_bucket(Authorization: Optional[str] = Header(None)):
 def create_pin() -> str:
     return _new_pin()
 
+
 @app.post("/activate")
 def activate(data: dict) -> dict:
     pin = data.get('pin')
     if not pin:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'PIN is required')
 
+    collection = _get_collection()
+
     appInfo = data.get('appInfo')
     if not appInfo:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'appInfo is required')
-    record = db["loggs"].find_one({'pin': pin})
+    record = collection.find_one({'pin': pin})
     if not record:
         raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED, detail=f'PIN is not found')
 
@@ -88,7 +101,7 @@ def activate(data: dict) -> dict:
     objectId = record.get("_id")
     # insert app data to db
     # todo: check success
-    db["loggs"].update_one({'_id': objectId}, {'$set': {'appInfo': appInfo}})
+    collection.update_one({'_id': objectId}, {'$set': {'appInfo': appInfo}})
 
     jwt_token = jwt.encode({"sub": str(objectId)}, key=SECRET_KEY, algorithm=ALGORITHM)
 
@@ -99,25 +112,19 @@ def activate(data: dict) -> dict:
     }
 
 
-def _default_configuration() -> dict:
-    return {
-        'remote_logger_url': remote_logger_url
-    }
-
-
 @app.post("/postBatchEvents")
 def post_events(events: List[dict],
                 oid: str = Depends(get_app_bucket)) -> str:
     # todo: add if condition that appInfo is there
     # todo: check result
-    db["loggs"].update_one({'_id': ObjectId(oid)},
-                           {'$push': {'events': {"$each": events}}})
+    _get_collection().update_one({'_id': ObjectId(oid)},
+                                 {'$push': {'events': {"$each": events}}})
     return "OK"
 
 
 @app.get("/get_configuration")
 def get_configuration(oid: str = Depends(get_app_bucket)) -> dict:
-    record = db["loggs"].find_one({'_id': ObjectId(oid)})
+    record = _get_collection().find_one({'_id': ObjectId(oid)})
     if not record:
         raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED, detail=f'PIN is not found')
     configuration = record.get('configuration', {})
@@ -132,7 +139,7 @@ def create_pin(request: Request):
 
 @app.get("/download/{pin}")
 def download_log(pin: str):
-    record = db["loggs"].find_one({'pin': pin})
+    record = _get_collection().find_one({'pin': pin})
     if not record:
         raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED, detail=f'PIN is not found')
     stream = StringIO()
@@ -156,15 +163,17 @@ def update_configuration(request: Request,
                          pin: str = Form(None),
                          local_url: str = Form(None)):
     if local_url:
-        record = db["loggs"].find_one({'pin': pin})
+        collection = _get_collection()
+        record = collection.find_one({'pin': pin})
         if not record:
             raise HTTPException(status_code=status.HTTP_412_PRECONDITION_FAILED, detail=f'PIN is not found')
-        db["loggs"].update_one({'pin': pin}, {'$set': {'configuration.local_logger_url': local_url}})
+        collection.update_one({'pin': pin}, {'$set': {'configuration.local_logger_url': local_url}})
     return _render_home(request, None)
 
 
 def _render_home(request, pin: Optional[str]):
-    entries = list(db["loggs"].find())
+    collection = _get_collection()
+    entries = list(collection.find())
     for entry in entries:
         entry.pop("_id")
         entry['has_events'] = bool(entry.pop("events", None))
