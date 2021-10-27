@@ -8,7 +8,7 @@
 
 
 # PRODUCTION
-FROM ubuntu:latest
+FROM python:3.9-buster
 
 # # Installing dependencies.
 # RUN apt-get update -y
