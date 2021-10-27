@@ -22,7 +22,8 @@ WORKDIR /app
 
 ENV PORT=8000
 # Install dependencies
-RUN pip install -r requirements.txt
+COPY . ./requirements.txt
+RUN pip install -r ./requirements.txt
 
 # Copy local code to the container image.
 COPY . ./
