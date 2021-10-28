@@ -103,12 +103,15 @@ def activate(data: dict) -> dict:
     # todo: check success
     collection.update_one({'_id': objectId}, {'$set': {'appInfo': appInfo}})
 
+    # todo: add 'exp'
     jwt_token = jwt.encode({"sub": str(objectId)}, key=SECRET_KEY, algorithm=ALGORITHM)
+
+    configuration = record.get('configuration', {})
 
     return {
         'jwt': jwt_token,
         'expires': record.get('expires'),
-        'configuration': _default_configuration()
+        'configuration': {**configuration, **_default_configuration()}
     }
 
 
