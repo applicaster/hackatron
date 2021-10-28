@@ -43,7 +43,7 @@
                 <div class="card-body d-flex justify-content-between">
                    <p>{{ entry.appInfo.appName }} {{ entry.appInfo.versionId }}</p>
                    {% if entry.has_events %}
-                    <a href="download/{{entry.pin}}" target="_blank">
+                    <a href="download/{{entry.pin}}" target="_blank" download>
                       <button type="button" class="btn btn-primary">Download</button>
                     </a>
                   {% endif %}

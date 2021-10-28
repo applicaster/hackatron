@@ -153,6 +153,8 @@ def download_log(pin: str):
         iter([stream.getvalue()]),
         media_type='text/json',
         headers={"Content-Disposition": "inline; filename=log.json"})
+    # with open("resp_text.json", "w") as file:
+    #     file.write(response.text)
     return response
 
 
