@@ -176,6 +176,7 @@ def update_configuration(request: Request,
 def _render_home(request, pin: Optional[str]):
     collection = _get_collection()
     entries = list(collection.find())
+    entries.sort(key="expires")
     for entry in entries:
         entry.pop("_id")
         entry['has_events'] = bool(entry.pop("events", None))
