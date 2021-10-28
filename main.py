@@ -152,10 +152,8 @@ def download_log(pin: str):
     response = StreamingResponse(
         iter([stream.getvalue()]),
         media_type='text/json',
-        headers={"Content-Disposition": "inline; filename=log.json"})
-    # with open("resp_text.json", "w") as file:
-    #     file.write(response.text)
-    return response
+        headers={"Content-Disposition": "attachment; filename=log.json","Content-Type": "application/json"})
+    return response 
 
 
 @app.get("/", response_class=HTMLResponse)
