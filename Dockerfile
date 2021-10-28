@@ -1,43 +1,21 @@
-# # BUILDING the APP
-# FROM node:10 AS builder
-# WORKDIR /app
-# COPY ./package.json ./
-# RUN npm install
-# COPY . .
-# RUN npm run build
+# Use the official lightweight Python image.
+# https://hub.docker.com/_/python
+FROM python:3.9-slim
 
-
-# PRODUCTION
-FROM node:12-alpine
-
-
-# # Installing dependencies.
-# RUN apt-get update -y
-# RUN apt install -y nodejs
-# RUN apt-get update -y
-# RUN apt install -y npm
-# RUN apt install -y openjdk-11-jre-headless 
-# RUN java -version
-
-WORKDIR /app
-
-# Copy application dependency manifests to the container image.
-# A wildcard is used to ensure both package.json AND package-lock.json are copied.
-# Copying this separately prevents re-running npm install on every code change.
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
+# Allow statements and log messages to immediately appear in the Knative logs
+ENV PYTHONUNBUFFERED True
 
 # Copy local code to the container image.
+ENV APP_HOME /app
+WORKDIR $APP_HOME
 COPY . ./
 
-# Build the application
-RUN npm run build
+# Install production dependencies.
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN npm install --only=production
-EXPOSE 8080
-CMD ["npm", "run", "start:prod"]
- 
-
- 
+# Run the web service on container startup. Here we use the gunicorn
+# webserver, with one worker process and 8 threads.
+# For environments with multiple CPU cores, increase the number of workers
+# to be equal to the cores available.
+# Timeout is set to 0 to disable the timeouts of the workers to allow Cloud Run to handle instance scaling.
+CMD ["gunicorn", "-k" , "uvicorn.workers.UvicornWorker", "main:app"]
