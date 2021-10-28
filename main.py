@@ -155,7 +155,6 @@ def download_log(pin: str):
         headers={"Content-Disposition": "attachment; filename=log.json","Content-Type": "application/json"})
     return response 
 
-
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request):
     return _render_home(request, None)
